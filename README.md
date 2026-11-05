@@ -96,6 +96,19 @@ python tool/package_desktop.py
 
 GitHub Actions의 **Desktop checks** 실행 결과에서 `keyboard-saver-macOS`, `keyboard-saver-Windows` artifact를 받을 수 있습니다. artifact 압축 안에 들어 있는 ZIP과 `.sha256` 파일을 GitHub Release에 첨부하세요. Actions artifact는 30일 동안 보관하며, 일반 사용자에게 제공할 영구 다운로드 링크는 Release에서 만듭니다.
 
+### GitHub Release 자동화
+
+`pubspec.yaml`의 앱 버전에 맞는 `v*` 태그를 푸시하면 **Desktop release**가 실행됩니다. 예를 들어 `version: 0.1.0+1`이면:
+
+```sh
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+태그와 앱 버전이 일치하는지 검사한 뒤, 기존 CI를 재사용해 Mac·Windows 테스트, Release 빌드, ZIP 포장과 체크섬 검증을 수행합니다. 성공하면 두 ZIP과 각각의 체크섬을 첨부한 **Draft Release**를 만듭니다. GitHub Releases에서 설치 파일과 안내를 확인한 뒤 Publish release로 공개하세요. `v0.1.0-beta.1`처럼 버전에 하이픈이 있으면 Pre-release로 표시합니다.
+
+같은 태그의 초안은 Actions의 **Desktop release → Run workflow**에 기존 태그를 입력해 다시 만들 수 있습니다. 이미 공개한 Release는 수정하지 않고 실패하며, 새 버전을 사용해야 합니다. 수동 실행 메뉴는 이 workflow가 기본 브랜치에 반영된 뒤 표시됩니다. 개인 토큰이나 배포용 인증서 없이 저장소의 `GITHUB_TOKEN`으로 Release 초안을 만들며, 쓰기 권한은 Release 첨부 작업에만 부여합니다.
+
 현재 파일은 Mac의 Developer ID 서명·공증과 Windows 배포 서명이 없는 테스트 버전입니다. Mac은 ad hoc 서명으로 앱 무결성만 확인하며, 다운로드 후 보안 경고나 추가 허용 절차가 나타날 수 있습니다. 무료 테스트 배포와 일반 사용자용 서명·공증 준비를 구분합니다.
 
 ## Mac에서 허용해도 권한이 인식되지 않을 때
