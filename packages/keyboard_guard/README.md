@@ -15,4 +15,4 @@ Keyboard Saver 저장소 내부용 Flutter 플러그인입니다. 공통 Dart �
 
 테스트: 저장소 루트에서 `flutter test packages/keyboard_guard/test`, `bash tool/test_native.sh`.
 
-macOS는 Swift Package Manager를 사용합니다. Windows는 Flutter가 생성한 CMake 빌드에 연결됩니다. 테스트 및 지원 범위는 루트 README를 참고하세요.
+macOS는 Swift Package Manager를 사용합니다. Windows는 Flutter가 생성한 CMake 빌드에 연결됩니다. 테스트 및 지원 범위는 [개발 안내](../../docs/development.md)를 참고하세요.
