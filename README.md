@@ -70,9 +70,33 @@ bash tool/test_native.sh
 flutter build macos --release
 ```
 
-`tool/test_native.sh`는 Mac에서 메모리에 만든 시스템 키 이벤트로 차단 판정·반복·modifier 조합·다른 시스템 이벤트 통과를 검증합니다. 실제 전역 키보드 차단을 켜거나 이벤트를 OS로 보내지는 않습니다. Flutter 테스트는 단일 종료 버튼과 비동기 응답 중 해제, 늦은 응답 무시, 실패 후 재시도를 확인합니다. Windows 네이티브 빌드 검증은 Windows 환경 또는 CI에서 수행해야 합니다. CI 파일은 준비되어 있으며, 원격 저장소에 올리기 전에는 실행되지 않습니다.
+`tool/test_native.sh`는 Mac에서 메모리에 만든 시스템 키 이벤트로 차단 판정·반복·modifier 조합·다른 시스템 이벤트 통과를 검증합니다. 실제 전역 키보드 차단을 켜거나 이벤트를 OS로 보내지는 않습니다. Flutter 테스트는 단일 종료 버튼과 비동기 응답 중 해제, 늦은 응답 무시, 실패 후 재시도를 확인합니다. Windows 네이티브 빌드 검증은 Windows 환경 또는 CI에서 수행해야 합니다. CI는 두 운영체제의 검증·빌드가 끝나면 다운로드용 파일을 artifact로 보관합니다.
 
 수동 검증 절차와 아직 보장하지 않는 동작은 [docs/manual-testing.md](docs/manual-testing.md)에 있습니다.
+
+## 다운로드용 파일 만들기
+
+Python 3와 해당 운영체제의 빌드 환경이 필요합니다. 먼저 Release를 빌드한 뒤 포장합니다.
+
+Mac:
+
+```sh
+flutter build macos --release
+python3 tool/package_desktop.py
+```
+
+Windows (PowerShell):
+
+```powershell
+flutter build windows --release
+python tool/package_desktop.py
+```
+
+`dist/`에 버전·운영체제·CPU 종류가 표시된 ZIP과 SHA-256 체크섬 파일을 만듭니다. ZIP에는 앱, 운영체제별 설치 안내, 서드파티 라이선스를 넣습니다. Mac은 실제 앱과 프레임워크에 포함된 CPU 아키텍처를 확인하고, 압축 해제 후 서명 무결성을 검증합니다. Windows는 Release 폴더 전체와 Visual Studio의 x64 재배포용 런타임 DLL을 포함하고, 압축 해제한 앱이 입력 차단 없이 대기 상태로 실행되는지 확인합니다.
+
+GitHub Actions의 **Desktop checks** 실행 결과에서 `keyboard-saver-macOS`, `keyboard-saver-Windows` artifact를 받을 수 있습니다. artifact 압축 안에 들어 있는 ZIP과 `.sha256` 파일을 GitHub Release에 첨부하세요. Actions artifact는 30일 동안 보관하며, 일반 사용자에게 제공할 영구 다운로드 링크는 Release에서 만듭니다.
+
+현재 파일은 Mac의 Developer ID 서명·공증과 Windows 배포 서명이 없는 테스트 버전입니다. Mac은 ad hoc 서명으로 앱 무결성만 확인하며, 다운로드 후 보안 경고나 추가 허용 절차가 나타날 수 있습니다. 무료 테스트 배포와 일반 사용자용 서명·공증 준비를 구분합니다.
 
 ## Mac에서 허용해도 권한이 인식되지 않을 때
 
@@ -87,7 +111,7 @@ Cursor 등의 내장 터미널에서 `flutter run -d macos`로 직접 실행하�
 
 Debug는 `Keyboard Saver Debug` / `dev.keyboardsaver.keyboardSaver.debug`, Release는 `Keyboard Saver` / `dev.keyboardsaver.keyboardSaver`로 분리했습니다. 권한도 각각 허용해야 합니다. 예전 빌드의 `build/macos/Build/Products/Debug/Keyboard Saver.app`는 사용하지 마세요. Release 앱은 `build/macos/Build/Products/Release/Keyboard Saver.app`에 있습니다. Dock의 예전 바로가기 대신 Finder에서 원하는 빌드를 직접 실행하면 혼동을 줄일 수 있습니다.
 
-반복 빌드에서도 권한을 유지하려면 Xcode의 Runner → Signing & Capabilities에서 본인의 Team과 **Apple Development** 서명을 설정하세요. 배포에는 **Developer ID Application** 서명과 공증이 필요합니다. 인증서가 없는 환경에서 ad hoc 서명만으로 권한 유지를 보장할 수는 없습니다. 앱은 시스템 권한을 자동으로 초기화하거나 허용하지 않습니다.
+반복 빌드에서도 권한을 유지하려면 Xcode의 Runner → Signing & Capabilities에서 본인의 Team과 **Apple Development** 서명을 설정하세요. 일반 사용자에게 원활하게 배포하려면 **Developer ID Application** 서명과 공증을 준비하세요. 인증서가 없는 환경에서 ad hoc 서명만으로 권한 유지를 보장할 수는 없습니다. 앱은 시스템 권한을 자동으로 초기화하거나 허용하지 않습니다.
 
 ## 현재 범위와 배포
 

@@ -2,6 +2,7 @@ name: Desktop checks
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -34,3 +35,17 @@ jobs:
         run: flutter build macos --release
       - if: runner.os == 'Windows'
         run: flutter build windows --release
+      - name: Package macOS download
+        if: runner.os == 'macOS'
+        run: python3 tool/package_desktop.py
+      - name: Package Windows download
+        if: runner.os == 'Windows'
+        run: python tool/package_desktop.py
+      - name: Upload downloads
+        uses: actions/upload-artifact@v4
+        with:
+          name: keyboard-saver-${{ runner.os }}
+          path: dist/*
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
