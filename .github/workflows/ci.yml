@@ -1,0 +1,36 @@
+name: Desktop checks
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  desktop:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.7'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: dart format --output=none --set-exit-if-changed lib test packages/keyboard_guard/lib packages/keyboard_guard/test
+      - run: flutter analyze
+      - run: flutter test
+      - run: flutter pub get
+        working-directory: packages/keyboard_guard
+      - run: flutter test
+        working-directory: packages/keyboard_guard
+      - if: runner.os == 'macOS'
+        run: bash tool/test_native.sh
+      - if: runner.os == 'macOS'
+        run: flutter build macos --release
+      - if: runner.os == 'Windows'
+        run: flutter build windows --release
